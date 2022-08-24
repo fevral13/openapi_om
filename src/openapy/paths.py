@@ -76,14 +76,15 @@ class Parameter:
     schema: t.Optional[Schema] = None
 
 
+@dataclass
 class RequestBody:
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#requestBodyObject
     """
 
     description: str
-    required: bool = False
     content: dict[ContentType, MediaType]
+    required: bool = False
 
 
 @dataclass
@@ -94,7 +95,7 @@ class Operation:
 
     responses: dict[str, Response]
     operationId: str
-    requestBody: RequestBody
+    requestBody: t.Optional[RequestBody] = None
     tags: t.Optional[t.Sequence[str]] = None
     parameters: t.Optional[t.Sequence[Parameter]] = None
     summary: t.Optional[str] = None

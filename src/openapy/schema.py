@@ -12,6 +12,7 @@ class SchemaType(Enum):
     string = "string"
     object = "object"
     array = "array"
+    number = "numbers"
 
 
 class PropertyFormat(Enum):
@@ -34,6 +35,7 @@ class Schema:
     minimum: int | None = None
     format: PropertyFormat | None = None
     enum: t.Optional[t.Sequence[str]] = None
+    description: t.Optional[str] = None
 
     def __post_init__(self):
         if self.type == SchemaType.object:
