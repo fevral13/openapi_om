@@ -1,5 +1,5 @@
 import typing as t
-from pydantic import BaseModel, Field, root_validator
+from pydantic import Field, root_validator
 
 from openapy.enums import (
     ContentType,
@@ -37,8 +37,10 @@ __all__ = [
     "XML",
 ]
 
+from openapy.utils import BaseModelOptimizedRepr
 
-class Example(BaseModel):
+
+class Example(BaseModelOptimizedRepr):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#exampleObject
     """
@@ -59,7 +61,7 @@ class Example(BaseModel):
     example, escaping where necessary. """
 
 
-class ExternalDocumentation(BaseModel):
+class ExternalDocumentation(BaseModelOptimizedRepr):
     """
     Allows referencing an external resource for extended documentation.
 
@@ -73,7 +75,7 @@ class ExternalDocumentation(BaseModel):
     """A short description of the target documentation. CommonMark syntax MAY be used for rich text representation."""
 
 
-class Tag(BaseModel):
+class Tag(BaseModelOptimizedRepr):
     """
     Adds metadata to a single tag that is used by the Operation Object. It is
     not mandatory to have a Tag Object per tag defined in the Operation Object instances.
@@ -91,7 +93,7 @@ class Tag(BaseModel):
     """Additional external documentation for this tag."""
 
 
-class Contact(BaseModel):
+class Contact(BaseModelOptimizedRepr):
     """
     Contact information for the exposed API.
 
@@ -108,7 +110,7 @@ class Contact(BaseModel):
     """The email address of the contact person/organization. MUST be in the format of an email address."""
 
 
-class License(BaseModel):
+class License(BaseModelOptimizedRepr):
     """
     License information for the exposed API.
 
@@ -122,7 +124,7 @@ class License(BaseModel):
     """A URL to the license used for the API. MUST be in the format of a URL."""
 
 
-class ServerVariable(BaseModel):
+class ServerVariable(BaseModelOptimizedRepr):
     """
     An object representing a Server Variable for server URL template substitution.
 
@@ -140,7 +142,7 @@ class ServerVariable(BaseModel):
     """An optional description for the server variable. CommonMark syntax MAY be used for rich text representation."""
 
 
-class Server(BaseModel):
+class Server(BaseModelOptimizedRepr):
     """
     An object representing a Server.
 
@@ -160,7 +162,7 @@ class Server(BaseModel):
     """A map between a variable name and its value. The value is used for substitution in the server's URL template."""
 
 
-class Info(BaseModel):
+class Info(BaseModelOptimizedRepr):
     """
     The object provides metadata about the API. The metadata MAY be used by the clients if needed, and MAY be
     presented in editing or documentation generation tools for convenience.
@@ -188,7 +190,7 @@ class Info(BaseModel):
     """The license information for the exposed API."""
 
 
-class Discriminator(BaseModel):
+class Discriminator(BaseModelOptimizedRepr):
     """
     When request bodies or response payloads may be one of a number of different schemas, a discriminator
     object can be used to aid in serialization, deserialization, and validation. The discriminator is a
@@ -209,7 +211,7 @@ class Discriminator(BaseModel):
     """An object to hold mappings between payload values and schema names or references."""
 
 
-class XML(BaseModel):
+class XML(BaseModelOptimizedRepr):
     """
     A metadata object that allows for more fine-tuned XML model definitions.
 
@@ -241,7 +243,7 @@ class XML(BaseModel):
     only when defined alongside type being array (outside the items). """
 
 
-class Schema(BaseModel):
+class Schema(BaseModelOptimizedRepr):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#schemaObject
     """
@@ -352,7 +354,7 @@ class Schema(BaseModel):
     #         )
 
 
-class Parameter(BaseModel):
+class Parameter(BaseModelOptimizedRepr):
     """
     Describes a single operation parameter.
 
@@ -450,8 +452,12 @@ class Parameter(BaseModel):
         result["in"] = result.pop("in_")
         return result
 
+    def __repr_args__(self):
+        result = super().__repr_args__()
+        return [("schema" if k == "schema_" else k, v) for k, v in result]
 
-class Header(BaseModel):
+
+class Header(BaseModelOptimizedRepr):
     """
     The Header Object follows the structure of the Parameter Object with the following changes:
 
@@ -479,8 +485,12 @@ class Header(BaseModel):
     example: t.Optional[t.Any] = None
     examples: t.Optional[dict[str, Example]] = None
 
+    def __repr_args__(self):
+        result = super().__repr_args__()
+        return [("schema" if k == "schema_" else k, v) for k, v in result]
 
-class Encoding(BaseModel):
+
+class Encoding(BaseModelOptimizedRepr):
     """
     A single encoding definition applied to a single schema property.
 
@@ -515,7 +525,7 @@ class Encoding(BaseModel):
     request body media type is not application/x-www-form-urlencoded. """
 
 
-class MediaType(BaseModel):
+class MediaType(BaseModelOptimizedRepr):
     """
     Each Media Type Object provides schema and examples for the media type identified by its key.
 
@@ -540,8 +550,12 @@ class MediaType(BaseModel):
     the schema as a property. The encoding object SHALL only apply to requestBody objects when the media type is 
     multipart or application/x-www-form-urlencoded. """
 
+    def __repr_args__(self):
+        result = super().__repr_args__()
+        return [("schema" if k == "schema_" else k, v) for k, v in result]
 
-class Link(BaseModel):
+
+class Link(BaseModelOptimizedRepr):
     """
     The Link object represents a possible design-time link for a response.
     The presence of a link does not guarantee the caller's ability to successfully
@@ -583,7 +597,7 @@ class Link(BaseModel):
     """A server object to be used by the target operation."""
 
 
-class Response(BaseModel):
+class Response(BaseModelOptimizedRepr):
     """
     Describes a single response from an API Operation, including design-time,
     static links to operations based on the response.
@@ -616,7 +630,7 @@ class Response(BaseModel):
         return result
 
 
-class RequestBody(BaseModel):
+class RequestBody(BaseModelOptimizedRepr):
     """
     Describes a single request body.
 
@@ -644,7 +658,7 @@ class RequestBody(BaseModel):
         return result
 
 
-class Callback(BaseModel):
+class Callback(BaseModelOptimizedRepr):
     """
     A map of possible out-of band callbacks related to the parent operation.
     Each value in the map is a Path Item Object that describes a set of requests
@@ -656,7 +670,7 @@ class Callback(BaseModel):
     """
 
 
-class SecurityRequirement(BaseModel):
+class SecurityRequirement(BaseModelOptimizedRepr):
     """
     Lists the required security schemes to execute this operation. The name used for
     each property MUST correspond to a security scheme declared in the Security Schemes
@@ -674,14 +688,14 @@ class SecurityRequirement(BaseModel):
     """
 
 
-class Operation(BaseModel):
+class Operation(BaseModelOptimizedRepr):
     """
     Describes a single API operation on a path.
 
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#operationObject
     """
 
-    responses: dict[str, Response]
+    responses: dict[int, Response]
     """REQUIRED. The list of possible responses as they are returned from executing this operation."""
 
     operationId: t.Optional[str] = None
@@ -734,7 +748,7 @@ class Operation(BaseModel):
     top-level security declaration, an empty array can be used. """
 
 
-class Path(BaseModel):
+class Path(BaseModelOptimizedRepr):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#pathItemObject
     """
@@ -764,7 +778,7 @@ class Path(BaseModel):
     Object to link to parameters that are defined at the OpenAPI Object's components/parameters. """
 
 
-class OauthFlow(BaseModel):
+class OauthFlow(BaseModelOptimizedRepr):
     """
     Configuration details for a supported OAuth Flow
 
@@ -788,7 +802,7 @@ class OauthFlow(BaseModel):
     description for it. """
 
 
-class OauthFlows(BaseModel):
+class OauthFlows(BaseModelOptimizedRepr):
     """
     Allows configuration of the supported OAuth Flows.
 
@@ -808,7 +822,7 @@ class OauthFlows(BaseModel):
     """Configuration for the OAuth Authorization Code flow. Previously called accessCode in OpenAPI 2.0."""
 
 
-class SecurityScheme(BaseModel):
+class SecurityScheme(BaseModelOptimizedRepr):
     """
     Defines a security scheme that can be used by the operations. Supported schemes are HTTP authentication,
     an API key (either as a header or as a query parameter), OAuth2's common flows (implicit, password,
@@ -853,7 +867,7 @@ class SecurityScheme(BaseModel):
         return values
 
 
-class Components(BaseModel):
+class Components(BaseModelOptimizedRepr):
     """
     Holds a set of reusable objects for different aspects of the OAS. All objects defined within the
     components object will have no effect on the API unless they are explicitly referenced from properties
@@ -873,7 +887,7 @@ class Components(BaseModel):
     callbacks: t.Optional[dict[str, Callback]] = None
 
 
-class OpenAPI(BaseModel):
+class OpenAPI(BaseModelOptimizedRepr):
     """
     This is the root document object of the OpenAPI document.
 

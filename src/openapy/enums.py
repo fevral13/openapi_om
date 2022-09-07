@@ -11,7 +11,12 @@ __all__ = [
 ]
 
 
-class SchemaType(Enum):
+class BaseEnum(Enum):
+    def __repr__(self):
+        return str(self)
+
+
+class SchemaType(BaseEnum):
     null = "null"
     integer = "integer"
     string = "string"
@@ -21,7 +26,7 @@ class SchemaType(Enum):
     boolean = "boolean"
 
 
-class PropertyFormat(Enum):
+class PropertyFormat(BaseEnum):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#data-types
     """
@@ -43,7 +48,7 @@ class PropertyFormat(Enum):
     password = "password"
 
 
-class ContentType(Enum):
+class ContentType(BaseEnum):
     # todo:
     any = "*/*"
     json = "application/json"
@@ -53,7 +58,7 @@ class ContentType(Enum):
     text_csv = "text/csv"
 
 
-class InParameterChoice(Enum):
+class InParameterChoice(BaseEnum):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#parameter-locations
     """
@@ -64,7 +69,7 @@ class InParameterChoice(Enum):
     cookie = "cookie"
 
 
-class SecuritySchemeChoice(Enum):
+class SecuritySchemeChoice(BaseEnum):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#fixed-fields-23
     """
@@ -75,7 +80,7 @@ class SecuritySchemeChoice(Enum):
     openIdConnect = "openIdConnect"
 
 
-class InSecuritySchemeChoice(Enum):
+class InSecuritySchemeChoice(BaseEnum):
     """
     https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.1.md#fixed-fields-23
     """
