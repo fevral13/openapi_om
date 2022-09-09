@@ -1,4 +1,4 @@
-from openapy import Tag
+from openapi_om import Tag
 
 
 def test_tag():

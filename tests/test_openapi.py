@@ -1,4 +1,4 @@
-from openapy.openapi import OpenAPI, Info, License, Contact
+from openapi_om.openapi import OpenAPI, Info, License, Contact
 
 
 def test_openapi():
