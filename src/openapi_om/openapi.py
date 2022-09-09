@@ -1,7 +1,7 @@
 import typing as t
 from pydantic import Field, root_validator
 
-from openapy.enums import (
+from openapi_om.enums import (
     ContentType,
     SchemaType,
     PropertyFormat,
@@ -9,6 +9,7 @@ from openapy.enums import (
     SecuritySchemeChoice,
     InSecuritySchemeChoice,
 )
+from openapi_om.utils import BaseModelOptimizedRepr
 
 __all__ = [
     "Components",
@@ -37,7 +38,9 @@ __all__ = [
     "XML",
 ]
 
-from openapy.utils import BaseModelOptimizedRepr
+DictAny = dict[t.Any, t.Any]
+DictStrAny = dict[str, t.Any]
+ListOfTuples = list[tuple[t.Any, t.Any]]
 
 
 class Example(BaseModelOptimizedRepr):
@@ -323,7 +326,7 @@ class Schema(BaseModelOptimizedRepr):
     results in an integer."""
 
     @root_validator(pre=True)
-    def map_not_name(cls, values):
+    def map_not_name(cls, values: DictAny) -> DictAny:
         if "not" in values:
             values["not_"] = values.pop("not")
         return values
@@ -442,17 +445,17 @@ class Parameter(BaseModelOptimizedRepr):
     schema which contains an example, the examples value SHALL override the example provided by the schema. """
 
     @root_validator(pre=True)
-    def map_in_name(cls, values):
+    def map_in_name(cls, values: DictAny) -> DictAny:
         if "in" in values:
             values["in_"] = values.pop("in")
         return values
 
-    def dict(self, *args, **kwargs):
+    def dict(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
         result = super().dict(*args, **kwargs)
         result["in"] = result.pop("in_")
         return result
 
-    def __repr_args__(self):
+    def __repr_args__(self) -> ListOfTuples:
         result = super().__repr_args__()
         return [("schema" if k == "schema_" else k, v) for k, v in result]
 
@@ -485,7 +488,7 @@ class Header(BaseModelOptimizedRepr):
     example: t.Optional[t.Any] = None
     examples: t.Optional[dict[str, Example]] = None
 
-    def __repr_args__(self):
+    def __repr_args__(self) -> ListOfTuples:
         result = super().__repr_args__()
         return [("schema" if k == "schema_" else k, v) for k, v in result]
 
@@ -550,7 +553,7 @@ class MediaType(BaseModelOptimizedRepr):
     the schema as a property. The encoding object SHALL only apply to requestBody objects when the media type is 
     multipart or application/x-www-form-urlencoded. """
 
-    def __repr_args__(self):
+    def __repr_args__(self) -> ListOfTuples:
         result = super().__repr_args__()
         return [("schema" if k == "schema_" else k, v) for k, v in result]
 
@@ -621,7 +624,7 @@ class Response(BaseModelOptimizedRepr):
     """A map of operations links that can be followed from the response. The key of the map is a short name for the 
     link, following the naming constraints of the names for Component Objects. """
 
-    def dict(self, *args, **kwargs):
+    def dict(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
         result = super().dict(*args, **kwargs)
 
         result["content"] = {
@@ -649,7 +652,7 @@ class RequestBody(BaseModelOptimizedRepr):
     required: bool = False
     """Determines if the request body is required in the request. Defaults to false."""
 
-    def dict(self, *args, **kwargs):
+    def dict(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
         result = super().dict(*args, **kwargs)
 
         result["content"] = {
@@ -861,7 +864,7 @@ class SecurityScheme(BaseModelOptimizedRepr):
     """A short description for security scheme. CommonMark syntax MAY be used for rich text representation."""
 
     @root_validator(pre=True)
-    def map_in_name(cls, values):
+    def map_in_name(cls, values: DictAny) -> DictAny:
         if "in" in values:
             values["in_"] = values.pop("in")
         return values
