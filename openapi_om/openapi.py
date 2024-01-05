@@ -627,9 +627,10 @@ class Response(BaseModelOptimizedRepr):
     def dict(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
         result = super().dict(*args, **kwargs)
 
-        result["content"] = {
-            str(key.value): value for key, value in result["content"].items()
-        }
+        if result.get("content") is not None:
+            result["content"] = {
+                str(key.value): value for key, value in result["content"].items()
+            }
         return result
 
 
