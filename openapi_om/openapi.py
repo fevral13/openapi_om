@@ -1,5 +1,5 @@
 import typing as t
-from pydantic import Field, root_validator
+from pydantic import Field, model_validator
 
 from openapi_om.enums import (
     ContentType,
@@ -32,6 +32,7 @@ __all__ = [
     "RequestBody",
     "Response",
     "Schema",
+    "SchemaValidationError",
     "SecurityScheme",
     "Server",
     "Tag",
@@ -41,6 +42,15 @@ __all__ = [
 DictAny = dict[t.Any, t.Any]
 DictStrAny = dict[str, t.Any]
 ListOfTuples = list[tuple[t.Any, t.Any]]
+
+
+class SchemaValidationError(Exception):
+    def __init__(self, message, schema_object):
+        self.message = message
+        self.schema_object = schema_object
+
+    def __str__(self):
+        return f"{self.message}: {repr(self.schema_object)}"
 
 
 class Example(BaseModelOptimizedRepr):
@@ -317,7 +327,7 @@ class Schema(BaseModelOptimizedRepr):
     allOf: t.Optional[t.Sequence["Schema"]] = None
     anyOf: t.Optional[t.Sequence["Schema"]] = None
     oneOf: t.Optional[t.Sequence["Schema"]] = None
-    not_: t.Optional["Schema"] = Field(default=None, alias="not")
+    not_: t.Optional["Schema"] = Field(default=None, serialization_alias="not")
 
     multipleOf: t.Optional[int] = None
     """The value of "multipleOf" MUST be a number, strictly greater than 0.
@@ -325,36 +335,32 @@ class Schema(BaseModelOptimizedRepr):
     A numeric instance is only valid if division by this keyword's value
     results in an integer."""
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def map_not_name(cls, values: DictAny) -> DictAny:
         if "not" in values:
             values["not_"] = values.pop("not")
         return values
 
-    # def __post_init__(self):
-    #     if self.type == SchemaType.object:
-    #         self._validate_object()
-    #
-    # def _validate_object(self):
-    #     if self.properties is None:
-    #         raise ValidationError(
-    #             f"""Schema {self} is of type "object" should define `properties`""",
-    #             schema_object=self,
-    #         )
-    #     if self.required is None:
-    #         raise ValidationError(
-    #             """`required` property must be set for type "object" """,
-    #             schema_object=self,
-    #         )
-    #     set_of_properties = {prop_name for prop_name in self.properties.keys()}
-    #     set_of_required = set(self.required)
-    #
-    #     unknown = set_of_required - set_of_properties
-    #     if unknown:
-    #         raise ValidationError(
-    #             f"These properties {unknown} are required, but are missing in property list.",
-    #             schema_object=self,
-    #         )
+    @model_validator(mode="after")
+    def validate(self):
+        if self.type == SchemaType.object:
+            self._validate_object()
+
+    def _validate_object(self):
+        if self.properties is None:
+            raise SchemaValidationError(
+                f"""Schema {self} is of type "object" should define `properties`""",
+                schema_object=self,
+            )
+        set_of_properties = {prop_name for prop_name in self.properties.keys()}
+        set_of_required = set(self.required or [])
+
+        unknown = set_of_required - set_of_properties
+        if unknown:
+            raise SchemaValidationError(
+                f"These properties {unknown} are required, but are missing in property list.",
+                schema_object=self,
+            )
 
 
 class Parameter(BaseModelOptimizedRepr):
@@ -396,7 +402,7 @@ class Parameter(BaseModelOptimizedRepr):
     For all other cases, the name corresponds to the parameter name used by the in property.
     """
 
-    in_: InParameterChoice
+    in_: InParameterChoice = Field(serialization_alias="in")
     """REQUIRED. The location of the parameter. Possible values are "query", "header", "path" or "cookie"."""
 
     required: bool = False
@@ -415,7 +421,7 @@ class Parameter(BaseModelOptimizedRepr):
     deprecated: t.Optional[bool] = None
     """Specifies that a parameter is deprecated and SHOULD be transitioned out of usage."""
 
-    schema_: t.Optional[Schema] = Field(default=None, alias="schema")
+    schema_: t.Optional[Schema] = Field(default=None, serialization_alias="schema")
     """The schema defining the type used for the parameter."""
 
     style: t.Optional[str] = None
@@ -444,14 +450,14 @@ class Parameter(BaseModelOptimizedRepr):
     parameter encoding. The examples field is mutually exclusive of the example field. Furthermore, if referencing a 
     schema which contains an example, the examples value SHALL override the example provided by the schema. """
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def map_in_name(cls, values: DictAny) -> DictAny:
         if "in" in values:
             values["in_"] = values.pop("in")
         return values
 
-    def dict(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
-        result = super().dict(*args, **kwargs)
+    def model_dump(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
+        result = super().model_dump(*args, **kwargs)
         result["in"] = result.pop("in_")
         return result
 
@@ -484,7 +490,7 @@ class Header(BaseModelOptimizedRepr):
     required: bool = False
     description: t.Optional[str] = None
     allowEmptyValue: bool = False
-    schema_: t.Optional[Schema] = Field(default=None, alias="schema")
+    schema_: t.Optional[Schema] = Field(default=None, serialization_alias="schema")
     example: t.Optional[t.Any] = None
     examples: t.Optional[dict[str, Example]] = None
 
@@ -624,8 +630,8 @@ class Response(BaseModelOptimizedRepr):
     """A map of operations links that can be followed from the response. The key of the map is a short name for the 
     link, following the naming constraints of the names for Component Objects. """
 
-    def dict(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
-        result = super().dict(*args, **kwargs)
+    def model_dump(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
+        result = super().model_dump(*args, **kwargs)
 
         if result.get("content") is not None:
             result["content"] = {
@@ -653,8 +659,8 @@ class RequestBody(BaseModelOptimizedRepr):
     required: bool = False
     """Determines if the request body is required in the request. Defaults to false."""
 
-    def dict(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
-        result = super().dict(*args, **kwargs)
+    def model_dump(self, *args: t.Any, **kwargs: t.Any) -> DictStrAny:
+        result = super().model_dump(*args, **kwargs)
 
         result["content"] = {
             str(key.value): value for key, value in result["content"].items()
@@ -843,7 +849,9 @@ class SecurityScheme(BaseModelOptimizedRepr):
     name: t.Optional[str] = None
     """Applies to apiKey. REQUIRED. The name of the header, query or cookie parameter to be used. """
 
-    in_: t.Optional[InSecuritySchemeChoice] = Field(default=None, alias="in")
+    in_: t.Optional[InSecuritySchemeChoice] = Field(
+        default=None, serialization_alias="in"
+    )
     """Applies to apiKey. REQUIRED. The location of the API key. Valid values are "query", "header" or "cookie". """
 
     scheme: t.Optional[str] = None
@@ -864,7 +872,7 @@ class SecurityScheme(BaseModelOptimizedRepr):
     description: t.Optional[str] = None
     """A short description for security scheme. CommonMark syntax MAY be used for rich text representation."""
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     def map_in_name(cls, values: DictAny) -> DictAny:
         if "in" in values:
             values["in_"] = values.pop("in")

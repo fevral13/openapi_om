@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openapi_om"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Serj Zavadsky <fevral13@gmail.com>"]
 
@@ -10,8 +10,8 @@ openapi_om_cli = "openapi_om.cli:main"
 [tool.poetry.dependencies]
 python = "^3.10"
 PyYAML = "^6"
-mypy = "^0"
-pydantic = "^1.9"
+mypy = "*"
+pydantic = "^2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7"

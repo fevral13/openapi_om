@@ -51,7 +51,9 @@ def _get_args_parser() -> argparse.ArgumentParser:
 def _command_export(args):
     imported_module = importlib.import_module(args.module)
     openapi = imported_module.openapi
-    schema_dict = json.loads(openapi.json(exclude_none=True, by_alias=True))
+    schema_dict = json.loads(
+        openapi.model_dump_json(exclude_none=True, exclude_unset=True, by_alias=True)
+    )
 
     if args.format == FORMAT_JSON:
         json.dump(schema_dict, sys.stdout)
