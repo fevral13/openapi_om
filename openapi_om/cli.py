@@ -13,12 +13,18 @@ FORMAT_YAML = "yaml"
 def main() -> int:
     args_parser = _get_args_parser()
     args = args_parser.parse_args()
-    args.func(args)
-    return exit(0)
+
+    try:
+        func = args.func
+    except AttributeError:
+        print(args_parser.print_help())
+        return exit(0)
+    else:
+        return func(args)
 
 
 def _get_args_parser() -> argparse.ArgumentParser:
-    args_parser = argparse.ArgumentParser()
+    args_parser = argparse.ArgumentParser(argument_default="export")
     subargs_parser = args_parser.add_subparsers(help="commands")
 
     command_export = subargs_parser.add_parser("export")
@@ -52,7 +58,3 @@ def _command_export(args):
     elif args.format == FORMAT_YAML:
         yaml.dump(schema_dict, sys.stdout)
     sys.stdout.flush()
-
-
-if __name__ == "__main__":
-    main()
