@@ -345,6 +345,7 @@ class Schema(BaseModelOptimizedRepr):
     def validate(self):
         if self.type == SchemaType.object:
             self._validate_object()
+        return self
 
     def _validate_object(self):
         if self.properties is None:
@@ -361,6 +362,15 @@ class Schema(BaseModelOptimizedRepr):
                 f"These properties {unknown} are required, but are missing in property list.",
                 schema_object=self,
             )
+
+    def __and__(self, other: "Schema") -> "Schema":
+        return Schema(allOf=[self, other])
+
+    def __or__(self, other: "Schema") -> "Schema":
+        return Schema(anyOf=[self, other])
+
+    def __xor__(self, other: "Schema") -> "Schema":
+        return Schema(oneOf=[self, other])
 
 
 class Parameter(BaseModelOptimizedRepr):
